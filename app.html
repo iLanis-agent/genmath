@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GenMath - honest generator sizing</title>
+<style>
+  :root { --bg:#131017; --card:#1e1924; --ink:#efeaf4; --dim:#a99db8; --acc:#f2c14e; --hot:#7ee08a; --cold:#e07e7e; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding:28px 24px 8px; max-width:980px; margin:0 auto; display:flex; justify-content:space-between; align-items:baseline; }
+  h1 { margin:0; font-size:28px; letter-spacing:.3px; }
+  h1 span { color:var(--acc); }
+  nav a { color:var(--dim); text-decoration:none; font-size:14px; }
+  main { max-width:980px; margin:0 auto; padding:16px 24px 60px; display:grid; gap:18px; }
+  .card { background:var(--card); border-radius:14px; padding:20px; }
+  .card h2 { margin:0 0 12px; font-size:13px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+  label { display:block; font-size:13px; color:var(--dim); margin-bottom:4px; }
+  input, select { width:100%; background:#141018; border:1px solid #39304a; color:var(--ink); border-radius:8px; padding:9px 10px; font-size:15px; }
+  .hint { font-size:12.5px; color:var(--dim); margin-top:10px; }
+  .apps { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:8px; margin-top:4px; }
+  .app { display:flex; align-items:center; gap:9px; background:#16111d; border:1px solid #2e2740; border-radius:9px; padding:8px 10px; font-size:13.5px; cursor:pointer; }
+  .app.on { border-color:var(--acc); background:#241d16; }
+  .app input { width:auto; accent-color:var(--acc); }
+  .app .w { margin-left:auto; color:var(--dim); font-size:12px; white-space:nowrap; }
+  .app .w b { color:var(--acc); font-weight:600; }
+  button { cursor:pointer; border:0; border-radius:9px; padding:11px 16px; font-size:15px; background:var(--acc); color:#20170a; font-weight:600; }
+  button.ghost { background:#2b2338; color:var(--ink); font-weight:500; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .verdict { font-size:17px; line-height:1.65; }
+  .verdict b { color:var(--acc); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:16px; }
+  .stat { background:#16111d; border-radius:10px; padding:12px; }
+  .stat .v { font-size:20px; font-weight:700; color:var(--acc); }
+  .stat .k { font-size:12px; color:var(--dim); margin-top:2px; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12.5px; font-weight:600; margin-left:8px; }
+  .b-ready { background:#1d3320; color:var(--hot); }
+  .b-tight { background:#3a3016; color:var(--acc); }
+  .b-surge, .b-overload { background:#3a1d1d; color:var(--cold); }
+  .note { margin-top:14px; font-size:13.5px; color:var(--dim); }
+  .note b { color:var(--acc); font-weight:600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Gen<span>Math</span></h1>
+  <nav><a href="index.html">home</a></nav>
+</header>
+<main>
+  <section class="card">
+    <h2>The generator</h2>
+    <div class="grid">
+      <div><label>Running watts (the honest number)</label><input id="running" type="number" value="3500"></div>
+      <div><label>Peak / starting watts (the box number)</label><input id="peak" type="number" value="4000"></div>
+      <div><label>Fuel tank (gallons)</label><input id="tank" type="number" step="0.1" value="4"></div>
+      <div><label>Fuel use at 25% load (gal/h)</label><input id="gph25" type="number" step="0.05" value="0.20"></div>
+      <div><label>Fuel use at 100% load (gal/h)</label><input id="gph100" type="number" step="0.05" value="0.80"></div>
+    </div>
+    <p class="hint">The big number on the box is almost always the <em>peak</em> - a few seconds of surge, not what it sustains. Sizing off it is how storms go dark at hour two.</p>
+  </section>
+
+  <section class="card">
+    <h2>What you want to run</h2>
+    <div class="apps" id="apps"></div>
+    <div class="row">
+      <button id="run">Size it honestly</button>
+      <button class="ghost" data-preset="storm">winter storm kit</button>
+      <button class="ghost" data-preset="rv">RV weekend</button>
+      <button class="ghost" data-preset="whole">whole-house fantasy check</button>
+    </div>
+  </section>
+
+  <section class="card" id="result" hidden>
+    <h2>The verdict</h2>
+    <p class="verdict" id="verdictText"></p>
+    <div class="stats" id="stats"></div>
+    <p class="note" id="advice"></p>
+  </section>
+
+  <section class="card">
+    <h2>Why "4000 watts" is not 4000 watts</h2>
+    <p class="note">Generators are sold on <b>peak watts</b> - a surge rating that lasts seconds. What you can actually run is the <b>running watts</b>. Motors (fridge, furnace blower, pumps, AC) need <b>3x their running power to start</b>, so the honest test is not the total - it is whether the biggest motor can kick on while everything else is already running. And runtime is not linear: at half load a typical portable sips roughly half the fuel it burns flat out, so one tank lasts much longer than the brochure's full-load number suggests.</p>
+  </section>
+</main>
+<script src="engine.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var selected = {};
+
+  function renderApps() {
+    var wrap = $('apps');
+    wrap.innerHTML = '';
+    GenMath.APPLIANCES.forEach(function (a) {
+      var div = document.createElement('div');
+      div.className = 'app' + (selected[a.id] ? ' on' : '');
+      var surge = a.startMult > 1 ? ' <b>' + GenMath.fmtW(GenMath.startingWatts(a)) + ' start</b>' : '';
+      div.innerHTML = '<input type="checkbox" ' + (selected[a.id] ? 'checked' : '') + '>' +
+        '<span>' + a.name + '</span><span class="w">' + GenMath.fmtW(a.running) + surge + '</span>';
+      div.onclick = function () {
+        selected[a.id] = !selected[a.id];
+        renderApps();
+      };
+      wrap.appendChild(div);
+    });
+  }
+
+  var PRESETS = {
+    storm: { running: 3500, peak: 4000, tank: 4, gph25: 0.20, gph100: 0.80,
+      ids: ['fridge', 'furnace', 'lights', 'router', 'phonecharge'] },
+    rv: { running: 2000, peak: 2200, tank: 1.1, gph25: 0.08, gph100: 0.30,
+      ids: ['windowac', 'lights', 'laptop', 'phonecharge'] },
+    whole: { running: 3500, peak: 4000, tank: 4, gph25: 0.20, gph100: 0.80,
+      ids: ['fridge', 'furnace', 'windowac', 'waterheater', 'tv', 'lights', 'microwave'] }
+  };
+
+  document.querySelectorAll('[data-preset]').forEach(function (b) {
+    b.onclick = function () {
+      var p = PRESETS[b.dataset.preset];
+      ['running', 'peak', 'tank', 'gph25', 'gph100'].forEach(function (k) { $(k).value = p[k]; });
+      selected = {};
+      p.ids.forEach(function (id) { selected[id] = true; });
+      renderApps();
+      run();
+    };
+  });
+
+  function getGen() {
+    return {
+      running: +$('running').value || 0,
+      peak: +$('peak').value || 0,
+      tank: +$('tank').value || 0,
+      gph25: +$('gph25').value || 0,
+      gph100: +$('gph100').value || 0
+    };
+  }
+  function getItems() {
+    return GenMath.APPLIANCES.filter(function (a) { return selected[a.id]; });
+  }
+
+  function run() {
+    var gen = getGen(), items = getItems();
+    if (!items.length) { alert('Pick at least one thing to run.'); return; }
+    var run = GenMath.totalRunning(items);
+    var surge = GenMath.worstCaseStart(items);
+    var v = GenMath.verdict(gen, items);
+    var hours = GenMath.runtimeHours(gen, items);
+    var lie = GenMath.boxLie(gen);
+    var frac = GenMath.loadFraction(gen, items);
+
+    var biggest = null;
+    items.forEach(function (a) { if (!biggest || GenMath.startingWatts(a) > GenMath.startingWatts(biggest)) biggest = a; });
+
+    var text = 'Your load runs at <b>' + GenMath.fmtW(run) + '</b>';
+    if (biggest && biggest.startMult > 1) {
+      text += ' - but when the ' + biggest.name.toLowerCase() + ' kicks on last, it demands <b>' + GenMath.fmtW(surge) + '</b> for a few seconds. ';
+    } else {
+      text += ' with no motor surge to speak of. ';
+    }
+    if (v.code === 'ready') text += 'Your ' + GenMath.fmtW(gen.running) + ' generator carries it with room to spare.';
+    else if (v.code === 'tight') text += 'It runs - barely. One more appliance and you are shopping in the dark.';
+    else if (v.code === 'surge') text += 'It can hold the load but cannot start it: the ' + (biggest ? biggest.name.toLowerCase() : 'biggest motor') + ' needs more surge than the ' + GenMath.fmtW(gen.peak) + ' peak.';
+    else text += 'It is over capacity before anything even starts.';
+
+    $('verdictText').innerHTML = text + ' <span class="badge b-' + v.code + '">' + v.label + '</span>';
+
+    var stats = [
+      { v: GenMath.fmtW(run), k: 'total running load' },
+      { v: GenMath.fmtW(surge), k: 'worst-case start' },
+      { v: Math.round(frac * 100) + '%', k: 'of running capacity' },
+      { v: GenMath.fmtW(gen.running), k: 'your real ceiling' },
+      { v: hours > 0 ? GenMath.fmtH(hours) : '-', k: 'per tank at this load' },
+      { v: lie + '%', k: 'of the box number you cannot use' }
+    ];
+    $('stats').innerHTML = stats.map(function (s) {
+      return '<div class="stat"><div class="v">' + s.v + '</div><div class="k">' + s.k + '</div></div>';
+    }).join('');
+
+    var advice = '';
+    if (v.code === 'ready') advice = 'Storm tip: stagger motor starts. Plug the fridge in first, wait ten seconds, then the furnace. Surge math assumes the worst; sequence beats watts.';
+    else if (v.code === 'tight') advice = 'You are inside the last 15% of capacity. Generators lose watts with altitude and age - treat this as a no.';
+    else if (v.code === 'surge') advice = 'Fix without buying: start the biggest motor first with everything else unplugged, then add loads one at a time. Or drop one motor load.';
+    else advice = 'The honest move is shedding load, not a bigger box number. Cut ' + GenMath.fmtW(run - gen.running + 1) + ' of running load and test again.';
+    $('advice').innerHTML = advice;
+
+    $('result').hidden = false;
+    $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  $('run').onclick = run;
+  renderApps();
+})();
+</script>
+</body>
+</html>
