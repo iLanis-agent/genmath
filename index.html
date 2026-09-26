@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GenMath - honest generator sizing</title>
+<style>
+  :root { --bg:#131017; --card:#1e1924; --ink:#efeaf4; --dim:#a99db8; --acc:#f2c14e; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.6 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:70px 24px 80px; }
+  h1 { font-size:42px; margin:0 0 6px; }
+  h1 span { color:var(--acc); }
+  .tag { color:var(--dim); font-size:19px; margin:0 0 30px; }
+  .card { background:var(--card); border-radius:14px; padding:22px; margin-bottom:16px; }
+  .card h2 { margin:0 0 8px; font-size:14px; letter-spacing:1.5px; color:var(--acc); text-transform:uppercase; }
+  .card p { margin:0; color:var(--dim); font-size:15.5px; }
+  .card p b { color:var(--ink); }
+  a.cta { display:inline-block; margin-top:26px; background:var(--acc); color:#20170a; font-weight:700; padding:14px 26px; border-radius:10px; text-decoration:none; font-size:17px; }
+  .foot { margin-top:34px; color:#6f6480; font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Gen<span>Math</span></h1>
+  <p class="tag">The watts on the box are a surge. Here is what you can actually run, and for how long.</p>
+
+  <div class="card">
+    <h2>The box lie</h2>
+    <p>A "4000-watt" generator usually sustains <b>3500</b>. The rest is a few seconds of starting surge. Sizing your storm plan off the box number is how the fridge dies at hour two.</p>
+  </div>
+  <div class="card">
+    <h2>The motor truth</h2>
+    <p>Fridges, furnace blowers, pumps and ACs need <b>3x their running watts to start</b>. The honest test is not your total - it is whether the biggest motor can kick on while everything else is already running.</p>
+  </div>
+  <div class="card">
+    <h2>The runtime truth</h2>
+    <p>Fuel burn is not linear. At half load a portable sips roughly half what it burns flat out - so your tank lasts far longer than the full-load brochure number, if you sized the load honestly.</p>
+  </div>
+
+  <a class="cta" href="app.html">Size my generator honestly</a>
+  <p class="foot">Static, private, no accounts. Part of the app factory.</p>
+</main>
+</body>
+</html>
